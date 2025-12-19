@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # 1. Your API Service
+  api:
+    build: .
+    container_name: chartify_api
+    ports:
+      - "8089:8089"
+    volumes:
+      - .:/app
+      - db_data:/app/data
+    environment:
+      - DB_PATH=/app/data/internal.db
+    restart: always
+    depends_on:
+      - db_service
+
+  # 2. The Test Database Service (New!)
+  db_service:
+    image: postgres:15
+    container_name: test_postgres_db
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: startup_db
+    ports:
+      - "5432:5432"  # This makes it accessible to your tools if needed
+
+volumes:
+  db_data:

@@ -1,0 +1,8 @@
+# List of libraries
+fastapi
+uvicorn
+pandas
+sqlalchemy
+cryptography
+psycopg2-binary  # For PostgreSQL support
+pymysql          # For MySQL support
