@@ -5,8 +5,17 @@ from sqlalchemy.orm import Session
 import models
 import security
 import engine
+from fastapi.middleware.cors import CORSMiddleware  
 
 app = FastAPI(title="ChartifyAPI - Analytics as a Service")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (good for development)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],
+)
 
 # Helper to get DB session
 def get_db():

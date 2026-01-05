@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chartify Demo Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .controls { background: #f4f4f4; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        input, button, select { padding: 10px; margin: 5px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #chart-container { position: relative; height: 400px; }
+    </style>
+</head>
+<body>
+
+    <h1>📊 Chartify API Demo</h1>
+    
+    <div class="controls">
+        <h3>1. Configure API Request</h3>
+        <input type="number" id="sourceId" placeholder="Source ID (e.g., 1)" value="1">
+        <input type="text" id="tableName" placeholder="Table Name" value="customers">
+        <br>
+        <input type="text" id="groupBy" placeholder="Group By (e.g., country)" value="country">
+        <input type="text" id="measureCol" placeholder="Measure Column (e.g., customerNumber)" value="customerNumber">
+        <select id="operation">
+            <option value="count">Count</option>
+            <option value="sum">Sum</option>
+            <option value="avg">Average</option>
+        </select>
+        <br><br>
+        <button onclick="generateChart()">🚀 Generate Chart</button>
+    </div>
+
+    <div id="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script>
+        let myChartInstance = null;
+
+        async function generateChart() {
+            // 1. Gather data from inputs
+            const payload = {
+                source_id: parseInt(document.getElementById('sourceId').value),
+                table_name: document.getElementById('tableName').value,
+                group_by_column: document.getElementById('groupBy').value,
+                measure_column: document.getElementById('measureCol').value,
+                operation: document.getElementById('operation').value
+            };
+
+            // 2. Call your API
+            // NOTE: Check if your port is 8000 or 8089 based on your screenshot
+            const response = await fetch('http://localhost:8089/analytics/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                alert("API Error! Check console for details.");
+                return;
+            }
+
+            const apiData = await response.json();
+            
+            // 3. Transform API Data for Chart.js
+            // The API gives us: [{label: 'France', value: 12}, ...]
+            // Chart.js wants: labels: ['France', ...], data: [12, ...]
+            const labels = apiData.data.map(item => item.label);
+            const values = apiData.data.map(item => item.value);
+
+            // 4. Draw the Chart
+            const ctx = document.getElementById('myChart').getContext('2d');
+            
+            // Destroy old chart if it exists
+            if (myChartInstance) {
+                myChartInstance.destroy();
+            }
+
+            myChartInstance = new Chart(ctx, {
+                type: 'bar', // Try changing this to 'pie' or 'line'!
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: apiData.chart_title || 'Analytics Result',
+                        data: values,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
